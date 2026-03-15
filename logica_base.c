@@ -18,8 +18,6 @@ typedef struct{
 } Despesa;
 
 int main(){
-    float receita_operacional_bruta, receita_operacional_liquida, lucro_bruto;
-    float lucro_operacional, lucro_liquido_antes_IR, total;
     Despesa despesas_DRE[6];
     strcpy(despesas_DRE[0].etapa_do_DRE, "Receita Operacional Bruta");
     strcpy(despesas_DRE[1].etapa_do_DRE, "Receita Operacional Líquida");
