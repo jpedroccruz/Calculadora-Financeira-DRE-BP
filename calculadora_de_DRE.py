@@ -6,7 +6,9 @@ def limpar_tela():
     
     subprocess.run(comando, shell=True)
 
-def dre():
+dre = []
+
+def calcaular_dre():
     limpar_tela()
 
     etapas_do_DRE = [
@@ -18,13 +20,19 @@ def dre():
         "Lucro Líquido do Exercício (TOTAL)"
     ]
 
-    dre = []
     for etapa in etapas_do_DRE:
-        dre.append({
-            "etapa": etapa,
-            "despesas": [],  
-            "total": 0.0
-        })
+        if etapa == "Receita Operacional Líquida":
+            dre.append({
+                "etapa": etapa,
+                "despesas": [{"nome": "CMV / CSV", "valor": None}],  
+                "total": 0.0
+            })
+        else:
+            dre.append({
+                "etapa": etapa,
+                "despesas": [],  
+                "total": 0.0
+            })
 
     print("=" * 50)
     print(f"{'CÁLCULO DE DRE':^50}")
@@ -48,6 +56,17 @@ def dre():
         print("(Deixe o nome da despesa em branco e aperte ENTER para ir para a próxima etapa)")
         
         total_descontos_etapa = 0.0
+
+        if (i == 1):
+            while True:
+                try:
+                    valor_despesa = float(input(f"\n> Valor de CMV / CSV: R$ "))
+                    break
+                except ValueError:
+                    print("[Erro] Por favor, insira um valor numérico válido.")
+            
+            dre[1]["despesas"][0] = {"nome": "CMV / CSV", "valor": valor_despesa}
+            total_descontos_etapa += valor_despesa
 
         while True:
             nome_despesa = input("\n> Nome da despesa (ou ENTER para parar): ").strip()
@@ -188,7 +207,7 @@ def main():
             case 0:
                 return
             case  1:
-                dre()
+                calcaular_dre()
             case 2: 
                 balancoPatrimonial()
             case _:
