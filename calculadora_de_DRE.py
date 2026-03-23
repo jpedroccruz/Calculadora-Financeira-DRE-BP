@@ -230,14 +230,14 @@ def calcularBP():
 def calcularIndices():
     indices['Liquidez Corrente'] = totais["Ativo Circulante"] / totais['Passivo Circulante']
     indices['Liquidez Seca'] = (totais["Ativo Circulante"] - balanco[0]['itens'][0]['valor']) / totais['Passivo Circulante']
-    indices['Giros de Estoque'] = dre[1]['despesas'][0]['valor'] / balanco[0]['itens'][0]['valor']
+    indices['Giro de Estoque'] = dre[1]['despesas'][0]['valor'] / balanco[0]['itens'][0]['valor']
     indices['Prazo Médio de Recebimento'] = balanco[0]['itens'][1]['valor'] / (dre[0]['total'] / 365)
-    indices['Prazo Médio de Pagamento'] = balanco[2]['itens'][0]['valor'] / (0.7 * dre[1]['despesas'][0]['valor'])
+    indices['Prazo Médio de Pagamento'] = balanco[2]['itens'][0]['valor'] / ((0.7 * dre[1]['despesas'][0]['valor']) / 365)
     indices['Giro do Ativo Total'] = dre[0]['total'] / (totais["Ativo Circulante"] + totais["Ativo Não Circulante"])
     indices['Endividamento Geral'] = (totais["Passivo Circulante"] + totais["Passivo Não Circulante"]) / (totais["Ativo Circulante"] + totais["Ativo Não Circulante"])
-    indices['Margem de Lucro Bruto'] = dre[2]['total'] / dre[1]['despesas'][0]['valor']
-    indices['Margem de Lucro Operacional'] = dre[3]['total'] / dre[1]['despesas'][0]['valor']
-    indices['Margem de Lucro Líquido'] = dre[5]['total'] / dre[1]['despesas'][0]['valor']
+    indices['Margem de Lucro Bruto'] = dre[2]['total'] / dre[0]['total']
+    indices['Margem de Lucro Operacional'] = dre[3]['total'] / dre[0]['total']
+    indices['Margem de Lucro Líquido'] = dre[5]['total'] / dre[0]['total']
 
 def gerarRelatorioDRE():
     print("=" * 55)
@@ -296,8 +296,16 @@ def gerarRelatorioIndices():
     if (resultado_do_balanço == 0 and balanco): 
         calcularIndices()
 
-        for chave, valor in indices.items():
-            print(f"{chave}: R$ {valor}")
+        print(f"Liquidez Corrente: {indices['Liquidez Corrente']:.1f}")
+        print(f"Liquidez Seca: {indices['Liquidez Seca']:.1f}")
+        print(f"Giro de Estoque: {indices['Giro de Estoque']:.1f} vezes ao ano")
+        print(f"Prazo Médio de Recebimento: {indices['Prazo Médio de Recebimento']:.1f} dias")
+        print(f"Prazo Médio de Pagamento: {indices['Prazo Médio de Pagamento']:.1f} dias")
+        print(f"Giro do Ativo Total: {indices['Giro do Ativo Total']:.2f}")
+        print(f"Endividamento Geral: {(100 * indices['Endividamento Geral']):.0f}%")
+        print(f"Margem de Lucro Bruto: {(100 * indices['Margem de Lucro Bruto']):.0f}%")
+        print(f"Margem de Lucro Operacional: {(100 * indices['Margem de Lucro Operacional']):.0f}%")
+        print(f"Margem de Lucro Líquido: {(100 * indices['Margem de Lucro Líquido']):.0f}%")
     else:
         print("Você não calculou, ou o resultado do Balanço\nPatrimonial está INCONSISTENTE.")
     
