@@ -7,8 +7,12 @@ def limpar_tela():
     subprocess.run(comando, shell=True)
 
 dre = []
+balanco = []
+totais = {}
+resultado_do_balanço = 0.0
+indices = {}
 
-def calcaular_dre():
+def calcularDRE():
     limpar_tela()
 
     etapas_do_DRE = [
@@ -88,24 +92,11 @@ def calcaular_dre():
 
     limpar_tela()
 
-    print("=" * 55)
-    print(f"{'DEMONSTRAÇÃO DO RESULTADO DO DRE':^55}")
-    print("=" * 55)
+    gerarRelatorioDRE()    
 
-    for i in range(len(dre)):
-        print(f"(=) {dre[i]['etapa']:<32} R$ {dre[i]['total']:10.2f}")
-        
-        if i < len(dre) - 1:
-            if dre[i]["despesas"]:
-                for desp in dre[i]["despesas"]:
-                    print(f"    (-) {desp['nome']:<28} R$ {desp['valor']:10.2f}")
-            else:
-                print("    ( Nenhuma dedução informada )")
-        print("-" * 55)
-
-def balancoPatrimonial():
+def calcularBP():
     limpar_tela()
-
+    
     secoes_do_balanco = [
         "Ativo Circulante",
         "Ativo Não Circulante",
@@ -114,13 +105,31 @@ def balancoPatrimonial():
         "Patrimônio Líquido"
     ]
 
-    balanco = []
     for secao in secoes_do_balanco:
-        balanco.append({
+        if (secao == "Ativo Circulante"):
+            balanco.append({
             "secao": secao,
-            "itens": [],
+            "itens": [{"nome": "Estoques", "valor": None}, {"nome": "Contas a receber", "valor": None}],
             "total": 0.0
         })
+        elif (secao == "Passivo Circulante"):
+            balanco.append({
+            "secao": secao,
+            "itens": [{"nome": "Fornecedores", "valor": None}],
+            "total": 0.0
+        })
+        elif (secao == "Patrimônio Líquido"):
+            balanco.append({
+                "secao": secao,
+                "itens": [{"nome": f"{"Lucros Acumulados" if dre[5]['total'] >= 0 else "Prejuízos acumulados"}", "valor": dre[5]['total']}],
+                "total": 0.0
+            })
+        else:
+            balanco.append({
+                "secao": secao,
+                "itens": [],
+                "total": 0.0
+            })
 
     print("=" * 50)
     print(f"{'CÁLCULO DE BALANÇO PATRIMONIAL':^50}")
@@ -137,15 +146,66 @@ def balancoPatrimonial():
 
         total_itens_secao = 0.0
 
+        if (i == 0):
+            while True:
+                try:
+                    valor_despesa = float(input(f"\n> Valor de Estoques: R$ "))
+                    if (valor_despesa <= 0):
+                        print("[Erro] Por favor, insira um valor numérico maior que ZERO.")
+                        continue
+                    break
+                except ValueError:
+                    print("[Erro] Por favor, insira um valor numérico válido.")
+            
+            balanco[0]["itens"][0] = {"nome": "Estoques", "valor": valor_despesa}
+            total_itens_secao += valor_despesa
+
+            while True:
+                try:
+                    valor_despesa = float(input(f"\n> Valor de Contas a receber: R$ "))
+                    if (valor_despesa <= 0):
+                        print("[Erro] Por favor, insira um valor numérico maior que ZERO.")
+                        continue
+                    break
+                except ValueError:
+                    print("[Erro] Por favor, insira um valor numérico válido.")
+            
+            balanco[0]["itens"][1] = {"nome": "Contas a receber", "valor": valor_despesa}
+            total_itens_secao += valor_despesa
+
+        if (i == 2):
+            while True:
+                try:
+                    valor_despesa = float(input(f"\n> Valor de Fornecedores: R$ "))
+                    if (valor_despesa <= 0):
+                        print("[Erro] Por favor, insira um valor numérico maior que ZERO.")
+                        continue
+                    break
+                except ValueError:
+                    print("[Erro] Por favor, insira um valor numérico válido.")
+            
+            balanco[2]["itens"][0] = {"nome": "Fornecedores", "valor": valor_despesa}
+            total_itens_secao += valor_despesa
+
+        if (i == 4):
+            total_itens_secao += dre[5]['total']
+
         while True:
             nome_item = input("\n> Nome do item (ou ENTER para parar): ").strip()
 
             if not nome_item:
+                itens_validos = [item for item in balanco[i]["itens"] if item.get("valor") is not None]
+                if len(itens_validos) == 0:
+                    print("[Erro] Você precisa informar pelo menos um item antes de avançar para a próxima seção.")
+                    continue
                 break
 
             while True:
                 try:
                     valor_item = float(input(f"> Valor de '{nome_item}': R$ "))
+                    if (valor_item <= 0):
+                        print("[Erro] Por favor, insira um valor numérico maior que ZERO.")
+                        continue
                     break
                 except ValueError:
                     print("[Erro] Por favor, insira um valor numérico válido.")
@@ -155,32 +215,99 @@ def balancoPatrimonial():
 
         balanco[i]["total"] = total_itens_secao
 
-    total_ativo = balanco[0]["total"] + balanco[1]["total"]
-    total_passivo = balanco[2]["total"] + balanco[3]["total"]
-    total_pl = balanco[4]["total"]
-    total_passivo_pl = total_passivo + total_pl
+    totais["Ativo Circulante"] = balanco[0]["total"]
+    totais["Ativo Não Circulante"] = balanco[1]["total"]
+    totais["Passivo Circulante"] = balanco[2]["total"]
+    totais["Passivo Não Circulante"] = balanco[3]["total"]
+    totais["Patrimônio Líquido"] = balanco[4]["total"]
 
     limpar_tela()
 
+    resultado_do_balanço = (totais["Ativo Circulante"] - totais["Ativo Não Circulante"]) - ((totais["Passivo Circulante"] + totais["Passivo Não Circulante"]) + totais["Patrimônio Líquido"])
+
+    gerarRelatorioBP()
+
+def calcularIndices():
+    indices['Liquidez Corrente'] = totais["Ativo Circulante"] / totais['Passivo Circulante']
+    indices['Liquidez Seca'] = (totais["Ativo Circulante"] - balanco[0]['itens'][0]['valor']) / totais['Passivo Circulante']
+    indices['Giros de Estoque'] = dre[1]['despesas'][0]['valor'] / balanco[0]['itens'][0]['valor']
+    indices['Prazo Médio de Recebimento'] = balanco[0]['itens'][1]['valor'] / (dre[0]['total'] / 365)
+    indices['Prazo Médio de Pagamento'] = balanco[2]['itens'][0]['valor'] / (0.7 * dre[1]['despesas'][0]['valor'])
+    indices['Giro do Ativo Total'] = dre[0]['total'] / (totais["Ativo Circulante"] + totais["Ativo Não Circulante"])
+    indices['Endividamento Geral'] = (totais["Passivo Circulante"] + totais["Passivo Não Circulante"]) / (totais["Ativo Circulante"] + totais["Ativo Não Circulante"])
+    indices['Margem de Lucro Bruto'] = dre[2]['total'] / dre[1]['despesas'][0]['valor']
+    indices['Margem de Lucro Operacional'] = dre[3]['total'] / dre[1]['despesas'][0]['valor']
+    indices['Margem de Lucro Líquido'] = dre[5]['total'] / dre[1]['despesas'][0]['valor']
+
+def gerarRelatorioDRE():
     print("=" * 55)
-    print(f"{'DEMONSTRAÇÃO DO RESULTADO DO BALANÇO':^55}")
+    print(f"{'DRE':^55}")
     print("=" * 55)
     
-    for secao in balanco:
-        print(f"{secao['secao']:<36} R$ {secao['total']:10.2f}")
-        if secao["itens"]:
-            for item in secao["itens"]:
-                print(f"    {item['nome']:<32} R$ {item['valor']:10.2f}")
-        else:
-            print("    ( Nenhum item informado )")
-        print("-" * 55)
+    if (dre): 
+        for i in range(len(dre)):
+            print(f"(=) {dre[i]['etapa']:<32} R$ {dre[i]['total']:10.2f}")
+            
+            if i < len(dre) - 1:
+                if dre[i]["despesas"]:
+                    for desp in dre[i]["despesas"]:
+                        print(f"    (-) {desp['nome']:<28} R$ {desp['valor']:10.2f}")
+                else:
+                    print("    ( Nenhuma dedução informada )")
+            print("-" * 55)
+    else:
+        print("Você não calculou o DRE.")
 
-    print(f"{'SUBTOTAL DO ATIVO':<36} R$ {total_ativo:10.2f}")
-    print(f"{'SUBTOTAL DO PASSIVO':<36} R$ {total_passivo:10.2f}")
-    print(f"{'SUBTOTAL DO P.L.':<36} R$ {total_pl:10.2f}")
-    print(f"{'TOTAL DO ATIVO':<36} R$ {total_ativo:10.2f}")
-    print(f"{'TOTAL PASSIVO + PL':<36} R$ {total_passivo_pl:10.2f}")
+    print('\n')
+
+def gerarRelatorioBP():
     print("=" * 55)
+    print(f"{'BALANÇO PATRIMONIAL':^55}")
+    print("=" * 55)
+    
+    if (balanco): 
+        for secao in balanco:
+            print(f"{secao['secao']:<36} R$ {secao['total']:10.2f}")
+            if secao["itens"]:
+                for item in secao["itens"]:
+                    print(f"    {item['nome']:<32} R$ {item['valor']:10.2f}")
+            else:
+                print("    ( Nenhum item informado )")
+            print("-" * 55)
+
+        print(f"{'TOTAL DO ATIVO':<36} R$ {totais['Ativo Circulante'] + totais['Ativo Não Circulante']:10.2f}")
+        print(f"{'TOTAL DO PASSIVO':<36} R$ {totais['Passivo Circulante'] + totais['Passivo Não Circulante']:10.2f}")
+        print(f"{'TOTAL PL':<36} R$ {totais['Patrimônio Líquido']:10.2f}")
+        print("=" * 55)
+        
+        if (resultado_do_balanço == 0): print("BALANÇO CONSISTENTE: A EQUAÇÃO FUNDAMENTAL FOI RESPEITADA.")
+        elif (resultado_do_balanço > 0): print(f"BALANÇO INCONSISTENTE: ESTÁ SOBRANDO R$ {resultado_do_balanço:.2f}.")
+        else: print(f"BALANÇO INCONSISTENTE: ESTÁ FALTANDO R$ {resultado_do_balanço:.2f}.")
+    else:
+        print("Você não calculou o Balanço Patrimonial.")
+
+    print('\n')
+
+def gerarRelatorioIndices():
+    print("=" * 55)
+    print(f"{'ÍNDICES FINANCEIROS':^55}")
+    print("=" * 55)
+
+    if (resultado_do_balanço == 0 and balanco): 
+        calcularIndices()
+
+        for chave, valor in indices.items():
+            print(f"{chave}: R$ {valor}")
+    else:
+        print("Você não calculou, ou o resultado do Balanço\nPatrimonial está INCONSISTENTE.")
+    
+    print('\n')
+
+def gerarRelatorioGeral():
+    limpar_tela()
+    gerarRelatorioDRE()
+    gerarRelatorioBP()
+    gerarRelatorioIndices()
 
 def main():
     option = 1
@@ -189,11 +316,12 @@ def main():
         limpar_tela()
 
         print("=" * 50)
-        print(f"{'CÁLCULADORA DE DE BALANÇO PATRIMONIAL E DRE':^50}")
+        print(f"{'CÁLCULADORA DE FINANCEIRA':^50}")
         print("=" * 50)
         print(f"{'[ 0 ] SAIR':<50}")
-        print(f"{'[ 1 ] DRE':<50}")
-        print(f"{'[ 2 ] BALANÇO PATRIMONIAL':<50}")
+        print(f"{'[ 1 ] CALCULAR DRE':<50}")
+        print(f"{'[ 2 ] CALCULAR BALANÇO':<50}")
+        print(f"{'[ 3 ] EXIBIR RELATÓRIO FINAL':<50}")
         print("=" * 50)
 
         while True:
@@ -207,13 +335,18 @@ def main():
             case 0:
                 return
             case  1:
-                calcaular_dre()
-            case 2: 
-                balancoPatrimonial()
+                calcularDRE()
+            case  2:
+                if (len(dre)):
+                    calcularBP()
+                else:
+                    print("\n[Erro] Você precisa calcular a DRE primeiro.")
+            case 3:
+                gerarRelatorioGeral()
             case _:
                 print("[Erro] Por favor, insira um valor válido.")
         
         input("Pressione uma tecla para continuar...")
-
+        
 if __name__ == "__main__":
     main()  
