@@ -13,6 +13,9 @@ resultado_do_balanço = 0.0
 indices = {}
 
 def calcularDRE():
+    global dre
+    dre = []
+
     limpar_tela()
 
     etapas_do_DRE = [
@@ -95,6 +98,9 @@ def calcularDRE():
     gerarRelatorioDRE()    
 
 def calcularBP():
+    global balanco
+    balanco = []
+
     limpar_tela()
     
     secoes_do_balanco = [
@@ -223,6 +229,7 @@ def calcularBP():
 
     limpar_tela()
 
+    global resultado_do_balanço
     resultado_do_balanço = (totais["Ativo Circulante"] - totais["Ativo Não Circulante"]) - ((totais["Passivo Circulante"] + totais["Passivo Não Circulante"]) + totais["Patrimônio Líquido"])
 
     gerarRelatorioBP()
@@ -264,7 +271,7 @@ def gerarRelatorioBP():
     print("=" * 55)
     print(f"{'BALANÇO PATRIMONIAL':^55}")
     print("=" * 55)
-    
+
     if (balanco): 
         for secao in balanco:
             print(f"{secao['secao']:<36} R$ {secao['total']:10.2f}")
@@ -282,7 +289,7 @@ def gerarRelatorioBP():
         
         if (resultado_do_balanço == 0): print("BALANÇO CONSISTENTE: A EQUAÇÃO FUNDAMENTAL FOI RESPEITADA.")
         elif (resultado_do_balanço > 0): print(f"BALANÇO INCONSISTENTE: ESTÁ SOBRANDO R$ {resultado_do_balanço:.2f}.")
-        else: print(f"BALANÇO INCONSISTENTE: ESTÁ FALTANDO R$ {resultado_do_balanço:.2f}.")
+        else: print(f"BALANÇO INCONSISTENTE: ESTÁ FALTANDO R$ {abs(resultado_do_balanço):.2f}.")
     else:
         print("Você não calculou o Balanço Patrimonial.")
 
